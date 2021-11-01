@@ -79,16 +79,17 @@ class MainActivity : AppCompatActivity() {
     fun setupCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
-        cameraProviderFuture.addListener({
+        cameraProviderFuture.addListener(Runnable {
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
             // プレビューユースケース
             val preview = Preview.Builder()
                 .build()
-                .also { it.setSurfaceProvider(cameraView.surfaceProvider) }
+                //.also { it.setSurfaceProvider(cameraView.surfaceProvider) }
 
             // 背面カメラを使用
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            //val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            val cameraSelector = CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build()
 
             // 画像解析(今回は物体検知)のユースケース
             val imageAnalyzer = ImageAnalysis.Builder()
@@ -114,7 +115,9 @@ class MainActivity : AppCompatActivity() {
                 cameraProvider.unbindAll()
 
                 // 各ユースケースをcameraXにバインドする
-                cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalyzer)
+                cameraProvider.bindToLifecycle(
+                    this, cameraSelector, preview, imageAnalyzer)
+                preview?.setSurfaceProvider(cameraView.createSurfaceProvider())
 
             } catch (exc: Exception) {
                 Log.e("ERROR: Camera", "Use case binding failed", exc)
